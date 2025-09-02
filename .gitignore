@@ -1,0 +1,23 @@
+# Gradle / Android
+/android-app/.gradle/
+/android-app/app/build/
+/android-app/.idea/
+/android-app/local.properties
+/android-app/*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node / misc
+node_modules/
+
+# Keystores
+**/*.jks
+node_modules/
+.expo/
+*.log
+dist/
+android/
+ios/
+*.keystore

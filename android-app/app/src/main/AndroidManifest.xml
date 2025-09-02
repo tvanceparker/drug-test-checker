@@ -1,0 +1,38 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.drugtestchecker">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- For Android 12+ exact alarms you may need SCHEDULE_EXACT_ALARM in manifest -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Request runtime POST_NOTIFICATIONS on Android 13+ -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:allowBackup="true"
+        android:label="Drug Test Checker"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+    <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    <activity android:name=".ProfilesActivity" android:exported="false" />
+    <activity android:name=".ViewLogsActivity" android:exported="false" />
+    <activity android:name=".AddProfileActivity" android:exported="false" />
+
+    <receiver android:name=".AlarmReceiver" android:exported="true" />
+    <receiver android:name=".AcknowledgeReceiver" android:exported="true" />
+    <receiver android:name=".DismissReceiver" android:exported="true" />
+    <receiver android:name=".BootReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

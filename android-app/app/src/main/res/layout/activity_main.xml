@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <EditText android:id="@+id/etName" android:hint="Profile Name" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    <EditText android:id="@+id/etPin" android:hint="PIN" android:inputType="number" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    <EditText android:id="@+id/etLast" android:hint="Last4" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    <Button android:id="@+id/btnEditProfile" android:text="Edit / Select Profile" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    <Button android:id="@+id/btnAddProfile" android:text="Add Profile" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    <Button android:id="@+id/btnViewLogs" android:text="View Test Logs" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    <Button android:id="@+id/btnSchedule" android:text="Schedule Daily 03:10 Boise" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    <Button android:id="@+id/btnImmediateTest" android:text="Schedule Immediate Test (1 min)" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    <TextView android:id="@+id/tvLastRun" android:text="Last run: --" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="8dp" />
+
+    <TextView
+        android:id="@+id/tvStatusCard"
+        android:text="Status: unknown"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:background="@android:color/darker_gray"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp" />
+
+</LinearLayout>
