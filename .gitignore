@@ -21,3 +21,4 @@ dist/
 android/
 ios/
 *.keystore
+android-app/.gradle-dist/
