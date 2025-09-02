@@ -1,9 +1,30 @@
 # Gradle / Android
+# Android / Gradle
+# Gradle caches and wrapper distributions (do not commit)
 /android-app/.gradle/
+/android-app/.gradle-dist/
+/android-app/gradle/
+
+# Build outputs
 /android-app/app/build/
-/android-app/.idea/
+
+# Local config
 /android-app/local.properties
+
+# IDE
+/android-app/.idea/
 /android-app/*.iml
+
+# Keystore and sensitive files
+*.jks
+*.keystore
+
+# Mac/Windows
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
 
 # OS files
 .DS_Store
