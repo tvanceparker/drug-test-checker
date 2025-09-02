@@ -55,9 +55,9 @@ class AlarmReceiver : BroadcastReceiver() {
                 var message = "No recognizable response"
                 var required = false
                 var dateText: String? = null
-                // regex to capture required/not required and optional date after comma
-                val reqRegex = Regex("(?i)you are\\s+required[^\\n]*to test today(?:,?\\s*(.*))?")
-                val notReqRegex = Regex("(?i)you are\\s+not\\s+required[^\\n]*to test today(?:,?\\s*(.*))?")
+                // regex to capture the site's actual phrasing and optional date after comma
+                val reqRegex = Regex("(?i)a\\s+drug\\s+test\\s+is\\s+scheduled\\s+for\\s+today(?:,?\\s*(.*))?")
+                val notReqRegex = Regex("(?i)a\\s+drug\\s+test\\s+is\\s+not\\s+scheduled\\s+for\\s+today(?:,?\\s*(.*))?")
                 for (t in labels) {
                     val tr = t.trim()
                     val mr = reqRegex.find(tr)
