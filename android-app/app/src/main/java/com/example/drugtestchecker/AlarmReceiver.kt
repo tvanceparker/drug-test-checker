@@ -12,6 +12,8 @@ import org.jsoup.Jsoup
 import java.io.File
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
@@ -60,19 +62,43 @@ class AlarmReceiver : BroadcastReceiver() {
                     val tr = t.trim()
                     val mr = reqRegex.find(tr)
                     if (mr != null) {
-                        message = tr
                         required = true
                         dateText = mr.groupValues.getOrNull(1)?.trim()?.trimEnd('.')
+                        // we'll format the user-facing message after parsing
                         break
                     }
                     val mn = notReqRegex.find(tr)
                     if (mn != null) {
-                        message = tr
                         required = false
                         dateText = mn.groupValues.getOrNull(1)?.trim()?.trimEnd('.')
+                        // we'll format the user-facing message after parsing
                         break
                     }
                     if (tr.contains("Please try again during your agency's call-in timeframe", true)) { message = tr; break }
+                }
+
+                // If we matched required/not-required, construct a standardized message
+                if (message != "No recognizable response" && !message.startsWith("Please try again", true)) {
+                    // message may already have been set to the raw label; prefer our standardized wording
+                }
+                if (message == "No recognizable response") {
+                    // check if we parsed required/not-required (required flag updated)
+                    if (required || dateText != null) {
+                        val formatter = DateTimeFormatter.ofPattern("MMMM dd", Locale.ENGLISH)
+                        val dateString = if (!dateText.isNullOrBlank()) {
+                            // ensure month name capitalization
+                            dateText.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString() }
+                        } else {
+                            ZonedDateTime.now(ZoneId.of("America/Boise")).format(formatter)
+                        }
+                        message = if (required) {
+                            "a drug test is scheduled for today, $dateString."
+                        } else {
+                            "a drug test is not scheduled for today, $dateString."
+                        }
+                    }
+                } else {
+                    // If message was set earlier e.g., "Please try again...", leave it as-is.
                 }
 
                 // If nothing matched, dump labels + a small HTML snapshot to debug file for diagnosis
