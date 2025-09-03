@@ -34,16 +34,28 @@ class AlarmReceiver : BroadcastReceiver() {
                 val forceRequired = intent?.getBooleanExtra("debug_force_required", false) ?: false
                 if (forceRequired) {
                     val message = "You are required to test today (debug)"
-                    // write a small HTML snapshot for debug runs
+                    // fetch real HTML so the snapshot reflects the site response
+                    var tsName = ZonedDateTime.now(ZoneId.of("America/Boise")).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
                     try {
+                        val doc = Jsoup.connect("https://drugtestcheck.com/")
+                            .userAgent("Mozilla/5.0 (Android)")
+                            .timeout(10000)
+                            .data("callInCode", pin, "lastName", last4)
+                            .post()
                         val dir = context.filesDir ?: return@Thread
                         val htmlDir = File(dir, "html")
                         if (!htmlDir.exists()) htmlDir.mkdirs()
-                        val tsName = ZonedDateTime.now(ZoneId.of("America/Boise")).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
-                        val snap = File(htmlDir, "snapshot_${remId}_$tsName.html")
-                        val html = "<html><body><h1>Debug snapshot</h1><p>${message}</p></body></html>"
-                        snap.writeText(html)
-                    } catch (_: Exception) { }
+                        tsName = ZonedDateTime.now(ZoneId.of("America/Boise")).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                        val snapName = "snapshot_${remId}_$tsName.html"
+                        val snap = File(htmlDir, snapName)
+                        val html = doc.outerHtml()
+                        val toWrite = if (html.length > 200_000) html.substring(0, 200_000) else html
+                        snap.writeText(toWrite)
+                        // append index entry
+                        val idx = File(htmlDir, "index.txt")
+                        val idxLine = listOf(snapName, tsName, profileId, message.replace('\n',' ')).joinToString("|") + "\n"
+                        idx.appendText(idxLine)
+                    } catch (_: Exception) { /* ignore snapshot failures in debug */ }
 
                     LogHelper.appendLog(context, pin, last4, message)
                     val today = java.time.ZonedDateTime.now(ZoneId.of("America/Boise")).toLocalDate().toString()

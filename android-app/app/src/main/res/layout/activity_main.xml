@@ -1,30 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="16dp"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <EditText android:id="@+id/etName" android:hint="Profile Name" android:layout_width="match_parent" android:layout_height="wrap_content" />
-    <EditText android:id="@+id/etPin" android:hint="PIN" android:inputType="number" android:layout_width="match_parent" android:layout_height="wrap_content" />
-    <EditText android:id="@+id/etLast" android:hint="Last4" android:layout_width="match_parent" android:layout_height="wrap_content" />
-    <Button android:id="@+id/btnEditProfile" android:text="Edit / Select Profile" android:layout_width="match_parent" android:layout_height="wrap_content" />
-    <Button android:id="@+id/btnAddProfile" android:text="Add Profile" android:layout_width="match_parent" android:layout_height="wrap_content" />
-    <Button android:id="@+id/btnViewLogs" android:text="View Test Logs" android:layout_width="match_parent" android:layout_height="wrap_content" />
-    <Button android:id="@+id/btnViewHtml" android:text="View HTML Snapshots" android:layout_width="match_parent" android:layout_height="wrap_content" />
-    <Button android:id="@+id/btnSchedule" android:text="Schedule Daily 03:10 Boise" android:layout_width="match_parent" android:layout_height="wrap_content" />
-    <Button android:id="@+id/btnImmediateTest" android:text="Schedule Immediate Test (1 min)" android:layout_width="match_parent" android:layout_height="wrap_content" />
-    <TextView android:id="@+id/tvLastRun" android:text="Last run: --" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="8dp" />
-
-    <TextView
-        android:id="@+id/tvStatusCard"
-        android:text="Status: unknown"
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="12dp"
-        android:background="@android:color/darker_gray"
-        android:textColor="@android:color/white"
-        android:textStyle="bold"
-        android:layout_marginTop="12dp" />
+        android:layout_height="wrap_content">
 
-</LinearLayout>
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardUseCompatPadding="true"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:text="Active Profile"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <EditText android:id="@+id/etName" android:hint="Profile Name" android:enabled="false" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                <EditText android:id="@+id/etPin" android:hint="PIN" android:inputType="number" android:enabled="false" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                <EditText android:id="@+id/etLast" android:hint="Last4" android:enabled="false" android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+                    
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEditProfile"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Edit / Select"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddProfile"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Add"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView android:id="@+id/tvLastRun" android:text="Last run: --" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                <TextView android:id="@+id/tvStatusCard" android:text="Status: unknown" android:textStyle="bold" android:textSize="18sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" />
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnViewLogs"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="View Logs" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnViewHtml"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="View Snapshots" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSchedule"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Schedule Daily 03:10 Boise"
+                    style="@style/Widget.Material3.Button.FilledTonalButton"
+                    android:layout_marginTop="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnImmediateTest"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Schedule Immediate Test (1 min)"
+                    style="@style/Widget.Material3.Button.FilledButton"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+
+</ScrollView>
