@@ -56,7 +56,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 var required = false
                 var dateText: String? = null
                 // regex to capture the site's actual phrasing and optional date after comma
-                val reqRegex = Regex("(?i)a\\s+drug\\s+test\\s+is\\s+scheduled\\s+for\\s+today(?:,?\\s*(.*))?")
+                val reqRegex = Regex("(?i)you\\s+are\\s+scheduled\\s+for\\s+a\\s+drug\\s+test\\s+today(?:,?\\s*(.*))?")
                 val notReqRegex = Regex("(?i)a\\s+drug\\s+test\\s+is\\s+not\\s+scheduled\\s+for\\s+today(?:,?\\s*(.*))?")
                 for (t in labels) {
                     val tr = t.trim()
@@ -100,6 +100,20 @@ class AlarmReceiver : BroadcastReceiver() {
                 } else {
                     // If message was set earlier e.g., "Please try again...", leave it as-is.
                 }
+
+                // Save an HTML snapshot for every run (up to 200KB to keep files small)
+                try {
+                    val dir = context.filesDir ?: return@Thread
+                    val htmlDir = File(dir, "html")
+                    if (!htmlDir.exists()) htmlDir.mkdirs()
+                    val tsName = ZonedDateTime.now(ZoneId.of("America/Boise")).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                    val snap = File(htmlDir, "snapshot_${tsName}.html")
+                    // write entire HTML; viewers will load this file
+                    val html = doc.outerHtml()
+                    // limit to ~200KB to avoid very large files
+                    val toWrite = if (html.length > 200_000) html.substring(0, 200_000) else html
+                    snap.writeText(toWrite)
+                } catch (_: Exception) { /* ignore snapshot write failures */ }
 
                 // If nothing matched, dump labels + a small HTML snapshot to debug file for diagnosis
                 if (message == "No recognizable response") {

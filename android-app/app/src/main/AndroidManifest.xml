@@ -24,6 +24,7 @@
 
     <activity android:name=".ProfilesActivity" android:exported="false" />
     <activity android:name=".ViewLogsActivity" android:exported="false" />
+    <activity android:name=".ViewHtmlActivity" android:exported="false" />
     <activity android:name=".AddProfileActivity" android:exported="false" />
 
     <receiver android:name=".AlarmReceiver" android:exported="true" />

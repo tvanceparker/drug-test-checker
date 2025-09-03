@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     etLast = findViewById<EditText>(R.id.etLast)
     etName = findViewById<EditText>(R.id.etName)
     val btnViewLogs = findViewById<Button>(R.id.btnViewLogs)
+    val btnViewHtml = findViewById<Button>(R.id.btnViewHtml)
     val btnImmediate = findViewById<Button>(R.id.btnImmediateTest)
     val tvLast = findViewById<TextView>(R.id.tvLastRun)
     val tvStatus = findViewById<TextView>(R.id.tvStatusCard)
@@ -108,6 +109,10 @@ class MainActivity : AppCompatActivity() {
         btnViewLogs.setOnClickListener {
             val i = android.content.Intent(this, ViewLogsActivity::class.java)
             startActivity(i)
+        }
+
+        btnViewHtml.setOnClickListener {
+            startActivity(Intent(this, ViewHtmlActivity::class.java))
         }
 
         // ensure there is an active profile; if not, force add

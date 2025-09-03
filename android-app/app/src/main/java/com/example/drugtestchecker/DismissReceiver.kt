@@ -14,7 +14,10 @@ class DismissReceiver : BroadcastReceiver() {
         val found = rems.find { it.id == id }
         val today = java.time.ZonedDateTime.now(java.time.ZoneId.of("America/Boise")).toLocalDate().toString()
         if (found != null) {
-            if (found.message.contains("required to test today", true)) {
+            // if it's a scheduled test message, resurface notification after 10 minutes when dismissed
+            if (found.message.contains("scheduled for a drug test today", true) ||
+                found.message.contains("is scheduled for today", true) ||
+                found.message.contains("a drug test is scheduled for today", true)) {
                 val pid = profileId ?: found.profileId
                 if (!ReminderStore.isAcknowledged(context, pid, today)) {
                     val mgr = AlarmScheduler(context)
