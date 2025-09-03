@@ -153,15 +153,12 @@ class AlarmReceiver : BroadcastReceiver() {
                 // log
                 LogHelper.appendLog(context, pin, last4, message)
 
-                    // create profile id and reminder entry
-                    val profileId = "${pin}_${last4}"
-                    val remId = System.currentTimeMillis().toString()
+                    // create reminder entry (profileId and remId prepared earlier)
                     // only add reminder / notify if not already acknowledged for today
                     val today = java.time.ZonedDateTime.now(ZoneId.of("America/Boise")).toLocalDate().toString()
                     if (!ReminderStore.isAcknowledged(context, profileId, today)) {
                         ReminderStore.add(context, Reminder(remId, profileId, message, System.currentTimeMillis()))
-                        // notify with actions; if required then keep notification persistent until acknowledged
-                            this@AlarmReceiver.showNotificationWithActions(context, "Drug Test Checker", message, remId, profileId, required)
+                        this@AlarmReceiver.showNotificationWithActions(context, "Drug Test Checker", message, remId, profileId, required)
                     }
 
                 // reschedule for next day
