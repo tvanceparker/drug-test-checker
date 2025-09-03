@@ -19,14 +19,32 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         Thread {
             try {
+                val prefs = context.getSharedPreferences("dtc", Context.MODE_PRIVATE)
+                val pin = prefs.getString("pin", "") ?: ""
+                val last4 = prefs.getString("last4", "") ?: ""
+
+                // Do not proceed without creds
+                if (pin.isBlank() || last4.isBlank()) return@Thread
+
+                // prepare identifiers for this run
+                val profileId = "${pin}_${last4}"
+                val remId = System.currentTimeMillis().toString()
+
                 // debug override: if the broadcast includes debug_force_required=true, skip network and force a required result
                 val forceRequired = intent?.getBooleanExtra("debug_force_required", false) ?: false
                 if (forceRequired) {
-                    val pin = context.getSharedPreferences("dtc", Context.MODE_PRIVATE).getString("pin", "") ?: ""
-                    val last4 = context.getSharedPreferences("dtc", Context.MODE_PRIVATE).getString("last4", "") ?: ""
                     val message = "You are required to test today (debug)"
-                    val profileId = "${pin}_${last4}"
-                    val remId = System.currentTimeMillis().toString()
+                    // write a small HTML snapshot for debug runs
+                    try {
+                        val dir = context.filesDir ?: return@Thread
+                        val htmlDir = File(dir, "html")
+                        if (!htmlDir.exists()) htmlDir.mkdirs()
+                        val tsName = ZonedDateTime.now(ZoneId.of("America/Boise")).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                        val snap = File(htmlDir, "snapshot_${remId}_$tsName.html")
+                        val html = "<html><body><h1>Debug snapshot</h1><p>${message}</p></body></html>"
+                        snap.writeText(html)
+                    } catch (_: Exception) { }
+
                     LogHelper.appendLog(context, pin, last4, message)
                     val today = java.time.ZonedDateTime.now(ZoneId.of("America/Boise")).toLocalDate().toString()
                     if (!ReminderStore.isAcknowledged(context, profileId, today)) {
@@ -38,12 +56,6 @@ class AlarmReceiver : BroadcastReceiver() {
                     mgr.scheduleDailyAtBoise(3, 10)
                     return@Thread
                 }
-                val prefs = context.getSharedPreferences("dtc", Context.MODE_PRIVATE)
-                val pin = prefs.getString("pin", "") ?: ""
-                val last4 = prefs.getString("last4", "") ?: ""
-
-                // Do not proceed without creds
-                if (pin.isBlank() || last4.isBlank()) return@Thread
 
                 val doc = Jsoup.connect("https://drugtestcheck.com/")
                     .userAgent("Mozilla/5.0 (Android)")
@@ -107,12 +119,17 @@ class AlarmReceiver : BroadcastReceiver() {
                     val htmlDir = File(dir, "html")
                     if (!htmlDir.exists()) htmlDir.mkdirs()
                     val tsName = ZonedDateTime.now(ZoneId.of("America/Boise")).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
-                    val snap = File(htmlDir, "snapshot_${tsName}.html")
+                    val snapName = "snapshot_${remId}_$tsName.html"
+                    val snap = File(htmlDir, snapName)
                     // write entire HTML; viewers will load this file
                     val html = doc.outerHtml()
                     // limit to ~200KB to avoid very large files
                     val toWrite = if (html.length > 200_000) html.substring(0, 200_000) else html
                     snap.writeText(toWrite)
+                    // append an index entry for viewer: simple CSV: filename|timestamp|profileId|message
+                    val idx = File(htmlDir, "index.txt")
+                    val idxLine = listOf(snapName, tsName, profileId, message.replace('\n',' ')).joinToString("|") + "\n"
+                    idx.appendText(idxLine)
                 } catch (_: Exception) { /* ignore snapshot write failures */ }
 
                 // If nothing matched, dump labels + a small HTML snapshot to debug file for diagnosis
