@@ -45,16 +45,14 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Edit / Select"
-                        style="@style/Widget.Material3.Button.OutlinedButton" />
+                        android:text="Edit / Select" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAddProfile"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Add"
-                        style="@style/Widget.Material3.Button.OutlinedButton" />
+                        android:text="Add" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -100,7 +98,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Schedule Daily 03:10 Boise"
-                    style="@style/Widget.Material3.Button.FilledTonalButton"
                     android:layout_marginTop="8dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -108,7 +105,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Schedule Immediate Test (1 min)"
-                    style="@style/Widget.Material3.Button.FilledButton"
                     android:layout_marginTop="8dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
