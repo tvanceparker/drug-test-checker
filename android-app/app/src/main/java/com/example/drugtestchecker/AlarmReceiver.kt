@@ -206,13 +206,9 @@ class AlarmReceiver : BroadcastReceiver() {
             .setContentText(body)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .addAction(android.R.drawable.ic_menu_send, "Acknowledge", ackPi)
-
-        if (required) {
-            // persistent ongoing notification until acknowledged
-            builder.setOngoing(true)
-        } else {
-            builder.setDeleteIntent(dismissPi)
-        }
+            // always set delete intent so swiping triggers DismissReceiver and can reschedule
+            .setDeleteIntent(dismissPi)
+            .setAutoCancel(true)
 
         val notif = builder.build()
         nm.notify(reminderId.hashCode(), notif)
