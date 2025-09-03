@@ -8,6 +8,32 @@ import android.os.Build
 import java.time.*
 
 class AlarmScheduler(val ctx: Context) {
+    fun scheduleDailyAtLocal(hour: Int, minute: Int) {
+        val zone = ZoneId.systemDefault()
+        var now = ZonedDateTime.now(zone)
+        var next = now.withHour(hour).withMinute(minute).withSecond(0).withNano(0)
+        if (!next.isAfter(now)) next = next.plusDays(1)
+
+        val epochMillis = next.toInstant().toEpochMilli()
+
+        val am = ctx.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(ctx, AlarmReceiver::class.java)
+        val pi = PendingIntent.getBroadcast(ctx, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (am.canScheduleExactAlarms()) {
+                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, epochMillis, pi)
+                } else {
+                    am.set(AlarmManager.RTC_WAKEUP, epochMillis, pi)
+                }
+            } else {
+                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, epochMillis, pi)
+            }
+        } catch (se: SecurityException) {
+            am.set(AlarmManager.RTC_WAKEUP, epochMillis, pi)
+        }
+    }
     fun scheduleDailyAtBoise(hour: Int, minute: Int) {
         val zone = ZoneId.of("America/Boise")
         var now = ZonedDateTime.now(zone)

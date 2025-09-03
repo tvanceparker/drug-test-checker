@@ -51,9 +51,11 @@ class AlarmReceiver : BroadcastReceiver() {
                         val html = doc.outerHtml()
                         val toWrite = if (html.length > 200_000) html.substring(0, 200_000) else html
                         snap.writeText(toWrite)
-                        // append index entry
+                        // append index entry, include profileName as well
+                        val profiles = ProfileHelper.getProfiles(context)
+                        val profileName = profiles.find { it.pin == pin && it.last4 == last4 }?.name ?: "(unknown)"
                         val idx = File(htmlDir, "index.txt")
-                        val idxLine = listOf(snapName, tsName, profileId, message.replace('\n',' ')).joinToString("|") + "\n"
+                        val idxLine = listOf(snapName, tsName, profileId, profileName, message.replace('\n',' ')).joinToString("|") + "\n"
                         idx.appendText(idxLine)
                     } catch (_: Exception) { /* ignore snapshot failures in debug */ }
 
@@ -65,7 +67,10 @@ class AlarmReceiver : BroadcastReceiver() {
                     }
                     // reschedule and exit
                     val mgr = AlarmScheduler(context)
-                    mgr.scheduleDailyAtBoise(3, 10)
+                    val sp = context.getSharedPreferences("dtc", Context.MODE_PRIVATE)
+                    val hour = sp.getInt("schedule_hour", 3)
+                    val minute = sp.getInt("schedule_minute", 10)
+                    mgr.scheduleDailyAtLocal(hour, minute)
                     return@Thread
                 }
 
@@ -116,7 +121,7 @@ class AlarmReceiver : BroadcastReceiver() {
                             ZonedDateTime.now(ZoneId.of("America/Boise")).format(formatter)
                         }
                         message = if (required) {
-                            "a drug test is scheduled for today, $dateString."
+                            "you are scheduled for a drug test today, $dateString."
                         } else {
                             "a drug test is not scheduled for today, $dateString."
                         }
@@ -138,9 +143,12 @@ class AlarmReceiver : BroadcastReceiver() {
                     // limit to ~200KB to avoid very large files
                     val toWrite = if (html.length > 200_000) html.substring(0, 200_000) else html
                     snap.writeText(toWrite)
-                    // append an index entry for viewer: simple CSV: filename|timestamp|profileId|message
+                    // resolve profile name for index
+                    val profiles = ProfileHelper.getProfiles(context)
+                    val profileName = profiles.find { it.pin == pin && it.last4 == last4 }?.name ?: "(unknown)"
+                    // append an index entry for viewer: simple CSV: filename|timestamp|profileId|profileName|message
                     val idx = File(htmlDir, "index.txt")
-                    val idxLine = listOf(snapName, tsName, profileId, message.replace('\n',' ')).joinToString("|") + "\n"
+                    val idxLine = listOf(snapName, tsName, profileId, profileName, message.replace('\n',' ')).joinToString("|") + "\n"
                     idx.appendText(idxLine)
                 } catch (_: Exception) { /* ignore snapshot write failures */ }
 
@@ -175,7 +183,10 @@ class AlarmReceiver : BroadcastReceiver() {
 
                 // reschedule for next day
                 val mgr = AlarmScheduler(context)
-                mgr.scheduleDailyAtBoise(3, 10)
+                val sp = context.getSharedPreferences("dtc", Context.MODE_PRIVATE)
+                val hour = sp.getInt("schedule_hour", 3)
+                val minute = sp.getInt("schedule_minute", 10)
+                mgr.scheduleDailyAtLocal(hour, minute)
             } catch (e: Exception) {
                 // Log exception to logcat and append to debug file
                 try {

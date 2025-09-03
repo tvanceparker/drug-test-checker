@@ -97,15 +97,18 @@
                     android:id="@+id/btnSchedule"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Schedule Daily 03:10 Boise"
+                    android:text="Set Daily Check Time"
                     android:layout_marginTop="8dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnImmediateTest"
+                <TextView
+                    android:id="@+id/tvScheduledTime"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Schedule Immediate Test (1 min)"
-                    android:layout_marginTop="8dp" />
+                    android:text="Scheduled daily check: --:-- (device time)"
+                    android:textSize="14sp"
+                    android:textColor="#666666"
+                    android:layout_marginTop="6dp" />
+                
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>

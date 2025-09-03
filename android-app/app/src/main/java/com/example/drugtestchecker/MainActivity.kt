@@ -9,7 +9,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import org.jsoup.Jsoup
 import java.time.*
 import android.widget.TextView
 import android.provider.Settings
@@ -18,6 +17,9 @@ import java.io.File
 import android.app.Activity
 import androidx.core.app.ActivityCompat
 import android.content.pm.PackageManager
+import android.app.TimePickerDialog
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 class MainActivity : AppCompatActivity() {
     private lateinit var etName: EditText
@@ -27,9 +29,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Request notification permission on Android 13+
+        // Proactively prompt for exact alarm and notifications permissions on open
+        if (!ExactAlarmHelper.hasExactAlarmPermission(this)) {
+            ExactAlarmHelper.openExactAlarmSettings(this)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Enable notifications so you won't miss alerts.", Toast.LENGTH_LONG).show()
                 ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 601)
             }
         }
@@ -42,9 +48,15 @@ class MainActivity : AppCompatActivity() {
     etName = findViewById<EditText>(R.id.etName)
     val btnViewLogs = findViewById<Button>(R.id.btnViewLogs)
     val btnViewHtml = findViewById<Button>(R.id.btnViewHtml)
-    val btnImmediate = findViewById<Button>(R.id.btnImmediateTest)
     val tvLast = findViewById<TextView>(R.id.tvLastRun)
     val tvStatus = findViewById<TextView>(R.id.tvStatusCard)
+    val tvScheduled = findViewById<TextView>(R.id.tvScheduledTime)
+    val prefs = getSharedPreferences("dtc", Context.MODE_PRIVATE)
+    val schedHour = prefs.getInt("schedule_hour", 3)
+    val schedMin = prefs.getInt("schedule_minute", 10)
+    val schedTimeStr = String.format("Scheduled daily check: %02d:%02d (device time)", schedHour, schedMin)
+    tvLast.text = "Last run: --\n$schedTimeStr"
+    tvScheduled.text = schedTimeStr
 
         fun showProfile(p: Profile) {
             etName.setText(p.name)
@@ -55,7 +67,7 @@ class MainActivity : AppCompatActivity() {
             etLast.isEnabled = false
         }
 
-        // show last run if logs exist
+        // show last run if logs exist, with human-friendly timestamp
         Thread {
             try {
                 val f = File(filesDir, "drug_test_logs.csv")
@@ -63,11 +75,18 @@ class MainActivity : AppCompatActivity() {
                     val lines = f.readLines()
                     val last = if (lines.size > 1) lines.last() else null
                     runOnUiThread {
-                        tvLast.text = "Last run: ${last ?: "--"}"
+                        if (last != null) {
+                            val parts = last.split(",", limit = 4)
+                            val tsRaw = parts.getOrNull(0) ?: "--"
+                            val inFmt = DateTimeFormatter.ISO_ZONED_DATE_TIME
+                            val outFmt = DateTimeFormatter.ofPattern("EEE, MMM d yyyy • h:mm a z")
+                            val tsPretty = try { ZonedDateTime.parse(tsRaw, inFmt).format(outFmt) } catch (e: DateTimeParseException) { tsRaw }
+                            tvLast.text = "Last run: $tsPretty\n$schedTimeStr"
+                        }
                         if (last != null) {
                             val parts = last.split(",", limit = 4)
                             val message = parts.getOrNull(3)?.trim('"') ?: "--"
-                            tvStatus.text = "Status: ${message}"
+                            tvStatus.text = message
                         }
                     }
                 }
@@ -75,16 +94,22 @@ class MainActivity : AppCompatActivity() {
         }.start()
 
         btnSchedule.setOnClickListener {
-            val mgr = AlarmScheduler(this)
-            // check exact alarm permission on Android 12+
-            if (!ExactAlarmHelper.hasExactAlarmPermission(this)) {
-                // Guide the user to the exact alarm settings rather than attempting to schedule
-                ExactAlarmHelper.openExactAlarmSettings(this)
-                Toast.makeText(this, "Exact alarm permission is required for a guaranteed 03:10 alarm. Please enable it in settings.", Toast.LENGTH_LONG).show()
-            } else {
-                mgr.scheduleDailyAtBoise(3, 10)
-                Toast.makeText(this, "Scheduled daily alarm at 03:10 Boise", Toast.LENGTH_LONG).show()
-            }
+            val dialog = TimePickerDialog(this, { _, hourOfDay, minute ->
+                val sp = getSharedPreferences("dtc", Context.MODE_PRIVATE)
+                sp.edit().putInt("schedule_hour", hourOfDay).putInt("schedule_minute", minute).apply()
+                val mgr = AlarmScheduler(this)
+                if (!ExactAlarmHelper.hasExactAlarmPermission(this)) {
+                    ExactAlarmHelper.openExactAlarmSettings(this)
+                    Toast.makeText(this, "Enable exact alarms so checks run reliably.", Toast.LENGTH_LONG).show()
+                }
+                mgr.scheduleDailyAtLocal(hourOfDay, minute)
+                val newTime = String.format("%02d:%02d", hourOfDay, minute)
+                val newStr = "Scheduled daily check: $newTime (device time)"
+                tvLast.text = "Last run: --\n$newStr"
+                tvScheduled.text = newStr
+                Toast.makeText(this, "Daily check set for $newTime (device time)", Toast.LENGTH_SHORT).show()
+            }, schedHour, schedMin, true)
+            dialog.show()
         }
 
         btnEdit.setOnClickListener {
@@ -99,13 +124,6 @@ class MainActivity : AppCompatActivity() {
 
     // edit/select accessible via Edit Profile button
 
-        btnImmediate.setOnClickListener {
-            // schedule test in 1 minute for debugging
-            val mgr = AlarmScheduler(this)
-            mgr.scheduleInMinutes(1)
-            Toast.makeText(this, "Immediate test scheduled in 1 minute", Toast.LENGTH_SHORT).show()
-        }
-
         btnViewLogs.setOnClickListener {
             val i = android.content.Intent(this, ViewLogsActivity::class.java)
             startActivity(i)
@@ -116,8 +134,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         // ensure there is an active profile; if not, force add
-        val prefs = getSharedPreferences("dtc", Context.MODE_PRIVATE)
-        val active = prefs.getString("active_profile", null)
+        val prefs2 = getSharedPreferences("dtc", Context.MODE_PRIVATE)
+        val active = prefs2.getString("active_profile", null)
         val profiles = ProfileHelper.getProfiles(this)
         if (active == null || profiles.isEmpty()) {
             // force add profile
@@ -126,31 +144,14 @@ class MainActivity : AppCompatActivity() {
             val p = profiles.find { it.id == active } ?: profiles.first()
             showProfile(p)
             // ensure active credentials saved
-            prefs.edit().putString("pin", p.pin).putString("last4", p.last4).apply()
+            prefs2.edit().putString("pin", p.pin).putString("last4", p.last4).apply()
         }
+
+        // Always (re)schedule the daily check at the saved time on app open
+        AlarmScheduler(this).scheduleDailyAtLocal(schedHour, schedMin)
     }
 
-    fun runCheck(pin: String, last4: String): String {
-        try {
-            val doc = Jsoup.connect("https://drugtestcheck.com/")
-                .userAgent("Mozilla/5.0 (Android)")
-                .timeout(10000)
-                .data("callInCode", pin, "lastName", last4)
-                .post()
-
-            val labels = doc.select("label").map { it.text() }
-            for (t in labels) {
-                if (t.contains("You are required to test today", true)) return t
-                if (t.contains("You are not required to test today", true)) return t
-                if (t.contains("Please try again during your agency's call-in timeframe", true)) return t
-            }
-
-            // attach labels for debugging when no match
-            return "No recognizable response: ${labels.joinToString(" | ")}" 
-        } catch (e: Exception) {
-            return "Error: ${e.message}"
-        }
-    }
+    // ... no direct network calls from MainActivity
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
