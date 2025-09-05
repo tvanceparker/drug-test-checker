@@ -10,10 +10,14 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
+        android:name=".SentryInit"
         android:allowBackup="true"
         android:label="Drug Test Checker"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+    <!-- Disable Sentry automatic init via ContentProvider (provider will expect DSN) -->
+    <meta-data android:name="io.sentry.dsn" android:value="" />
 
     <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
@@ -25,6 +29,7 @@
     <activity android:name=".ProfilesActivity" android:exported="false" />
     <activity android:name=".ViewLogsActivity" android:exported="false" />
     <activity android:name=".ViewHtmlActivity" android:exported="false" />
+    <activity android:name=".DebugLogActivity" android:exported="false" />
     <activity android:name=".AddProfileActivity" android:exported="false" />
 
     <receiver android:name=".AlarmReceiver" android:exported="true" />

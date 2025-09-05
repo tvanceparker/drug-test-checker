@@ -4,40 +4,25 @@ Small on-device Android app that queries [drugtestcheck.com](https://drugtestche
 
 This project runs entirely on the device. The app lets the user pick a device-local daily time to run the check (defaults to 03:10). Results, snapshots, and credentials are stored locally.
 
-Features
-
-- User-manageable daily check time (defaults to 03:10 device-local).
-
-- Local profile storage: 7-digit PIN and 4-letter last4 in SharedPreferences.
-
-- CSV logging: `files/drug_test_logs.csv` with header `timestamp,pin,last4,message`.
-
-- HTML snapshots saved under `files/html/` with an `index.txt` the in-app viewer uses.
-
-- Actionable notifications: Acknowledge stops repeats for that day; swipe/dismiss behavior can resurface required notifications.
-
-- Debugging: unrecognized responses and short HTML snippets written to `files/dtc_debug.txt`.
-
-Build & install
-
-1. Ensure Android SDK and JDK are available and a device or emulator is connected.
-## Drug Test Checker (Android)
+# Drug Test Checker (Android)
 
 Small on-device Android app that checks https://drugtestcheck.com for whether a saved profile is required to test on a given day.
 The project runs entirely on the device and stores profiles, logs, and snapshots locally. The user selects a device-local daily time
 for the check (default: 03:10).
 
-## Features
+Status
+- Core app implemented: scheduling, local profiles (7-digit PIN + last4), CSV logging, HTML snapshots, and in-app snapshot viewer.
+- Actionable notifications implemented (Acknowledge / Dismiss).
+- Optional automatic error reporting integrated with Sentry. Telemetry is opt-in (toggle in main UI). Manual debug-send button exists.
 
-- User-manageable daily check time (defaults to 03:10 device-local).
-- Local profile storage: 7-digit PIN and 4-letter last4 saved in the app's SharedPreferences (local only).
-- CSV logging: `files/drug_test_logs.csv` with header `timestamp,pin,last4,message`.
-- HTML snapshots saved under `files/html/` with an `index.txt` used by the in-app snapshot viewer.
-- Actionable notifications: Acknowledge stops repeats for that day; swipe/dismiss handling can resurface required notifications.
-- Debugging: unrecognized responses and short HTML snippets written to `files/dtc_debug.txt`.
+Quick features
+- Set device-local daily check time (default: 03:10).
+- Local profile storage: 7-digit PIN and 4-letter last4 (SharedPreferences).
+- CSV logging: `files/drug_test_logs.csv` (header: `timestamp,pin,last4,message`).
+- HTML snapshots: saved under `files/html/` with `index.txt` for in-app viewer.
+- Debugging: `files/dtc_debug.txt` holds short HTML snippets and parse dumps for unrecognized responses.
 
-## Build & install
-
+Build & install (developer)
 1. Ensure Android SDK and JDK are installed and a device or emulator is connected.
 
 2. From the repository root:
@@ -48,35 +33,31 @@ cd android-app
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-## Usage
-
+Usage (user)
 1. Open the app, add a profile (enter a 7-digit PIN and the first 4 letters of the last name).
-2. Tap "Set Daily Check Time" to select the device-local time for the check (dialog initializes to the saved time; default 03:10).
-3. The app runs the check daily at the chosen device-local time and logs results to `files/drug_test_logs.csv`.
-4. Use "View Logs" for readable timestamps and messages.
-5. Use "View Snapshots" to inspect saved HTML responses (the viewer warns that external resources may be broken).
+2. Tap "Set Daily Check Time" to pick the device-local time (dialog initializes to saved time; default 03:10).
+3. The app will run the check daily at the chosen time and log results to `files/drug_test_logs.csv`.
+4. Use "View Logs" to inspect recent runs and "View Snapshots" to review saved HTML snapshots.
 
-## Files written on device
+Preferences and files (on device)
+- SharedPreferences namespace: `dtc`
+	- `schedule_hour`, `schedule_minute` (ints)
+	- `telemetry_enabled` (boolean) — opt-in for Sentry/error reporting
+	- `active_profile`, `pin`, `last4`, `dtc_profiles` (json string)
 
-- `files/drug_test_logs.csv` — CSV log (header: `timestamp,pin,last4,message`).
-- `files/dtc_debug.txt` — debug dump for unrecognized responses (includes short HTML snippets and labels).
-- `files/html/` — saved HTML snapshots plus `index.txt` (pipe-separated entries: `filename|timestamp|profileId|profileName|message`).
+- Files (app internal storage):
+	- `files/drug_test_logs.csv`
+	- `files/dtc_debug.txt`
+	- `files/html/` (snapshots) and `files/html/index.txt`
 
-## Preferences
-
-- `schedule_hour` (int): saved local-hour for the daily check (default: `3`).
-- `schedule_minute` (int): saved minute for the daily check (default: `10`).
-- Profiles and the active profile are stored in the `dtc` SharedPreferences namespace.
-
-## Developer / testing notes
-
+Developer / testing notes
 - Force a debug-required run (development only):
 
 ```bash
 adb shell am broadcast -n com.example.drugtestchecker/.AlarmReceiver --ez debug_force_required true
 ```
 
-- Inspect files written by the app:
+- View files written by the app (use `run-as` on device/emulator):
 
 ```bash
 adb shell run-as com.example.drugtestchecker ls -l files
@@ -86,31 +67,20 @@ adb shell run-as com.example.drugtestchecker cat files/html/index.txt
 adb shell run-as com.example.drugtestchecker cat files/dtc_debug.txt
 ```
 
-## Permissions & platform notes
+Telemetry & privacy
+- Telemetry is opt-in. The main UI has a switch labeled "Telemetry" — enable it to allow automatic and manual error reports to Sentry.
+- When enabled, the app will upload sanitized debug snippets when parse failures occur or when you use the manual "Send debug report (test)" button.
+- Sensitive data redaction: before sending, the app masks 7-digit PIN-like sequences and 4-digit sequences in messages and attachments.
+- The DSN is provided via the build config; ensure you do not commit secret DSNs into the repo.
 
-- Notifications: On Android 13+ the app requests POST_NOTIFICATIONS; allow notifications to receive alerts.
-- Exact alarms: On Android 12+ the app may prompt for SCHEDULE_EXACT_ALARM; without it alarms are best-effort and timing may vary.
-
-## Security & privacy
-
-All credentials and logs remain on the device. The app POSTs to the public site https://drugtestcheck.com using saved profile data.
-No cloud services are used and the repository does not contain credentials.
-
-## CI / build automation
-
-The repo can be configured with CI (GitHub Actions) to build the debug APK on push.
-
-## Notes and caveats
-
-- Snapshots are static HTML files; external resources may not load when viewed from the snapshot. The in-app viewer displays a warning.
+Notes & caveats
+- The in-app snapshots are static HTML; external resources may not load.
 - Parsing is conservative; unrecognized responses are written to `dtc_debug.txt` for inspection and regex tuning.
-- This project uses Jsoup for POST and parsing; ensure outbound HTTPS to `drugtestcheck.com` is allowed when testing.
+- Some Sentry features (server-side beforeSend hooks) were avoided client-side to reduce SDK API coupling; the app sanitizes data locally before send.
 
-## Contributing
+Contributing
+- Keep sensitive information out of commits (keystores, personal data).
+- If you add CI, ensure secrets (Sentry DSN) are provided via repository secrets and not stored in code.
 
-This project is intended for local on-device use. If you contribute or publish, avoid adding sensitive files (keystores, local backups)
-to the repo.
-
-## License
-
-Add your preferred license.
+License
+- Add your preferred license.

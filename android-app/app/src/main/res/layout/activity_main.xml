@@ -100,6 +100,27 @@
                     android:text="Set Daily Check Time"
                     android:layout_marginTop="8dp" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSendDebug"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Send debug report (test)"
+                    android:layout_marginTop="8dp" />
+                
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchTelemetry"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Enable error reporting (Sentry)"
+                    android:layout_marginTop="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnViewDebug"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="View Debug Log"
+                    android:layout_marginTop="8dp" />
+
                 <TextView
                     android:id="@+id/tvScheduledTime"
                     android:layout_width="match_parent"

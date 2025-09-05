@@ -12,6 +12,9 @@ android {
         targetSdk 33
         versionCode 1
         versionName "0.1"
+    // Sentry DSN: allow overriding via project property SENTRY_DSN (set in local.properties or via -PSENTRY_DSN)
+    def sentryDsn = project.hasProperty("SENTRY_DSN") ? project.SENTRY_DSN : "https://55887781862b0ff17a52bc98e7f30a48@o4509967361769472.ingest.us.sentry.io/4509967368716288"
+    buildConfigField "String", "SENTRY_DSN", "\"${sentryDsn}\""
     }
 
     compileOptions {
@@ -27,4 +30,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'org.jsoup:jsoup:1.16.1'
+    // Sentry for crash and event reporting
+    implementation 'io.sentry:sentry-android:6.21.0'
 }

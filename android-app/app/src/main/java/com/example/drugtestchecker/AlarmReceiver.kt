@@ -164,9 +164,21 @@ class AlarmReceiver : BroadcastReceiver() {
                         sb.append("--- HTML snippet start ---\n")
                         // write a truncated snapshot to avoid huge files
                         val html = doc.html()
-                        sb.append(html.take(2000)).append("\n")
+                        val snippet = html.take(2000)
+                        sb.append(snippet).append("\n")
                         sb.append("--- HTML snippet end ---\n\n")
                         dbg.appendText(sb.toString())
+                        // report to Sentry (redaction will happen in beforeSend)
+                        try {
+                            val csvTail = try {
+                                val logFile = File(context.filesDir, "drug_test_logs.csv")
+                                if (logFile.exists()) {
+                                    val lines = logFile.readLines()
+                                    lines.takeLast(50).joinToString("\n")
+                                } else null
+                            } catch (_: Exception) { null }
+                            ReportHelper.reportParseFailure(context, "Unrecognized response labels", csvTail, snippet)
+                        } catch (_: Exception) { }
                     } catch (_: Exception) { /* ignore debug write failures */ }
                 }
 
@@ -187,7 +199,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 val hour = sp.getInt("schedule_hour", 3)
                 val minute = sp.getInt("schedule_minute", 10)
                 mgr.scheduleDailyAtLocal(hour, minute)
-            } catch (e: Exception) {
+        } catch (e: Exception) {
                 // Log exception to logcat and append to debug file
                 try {
                     android.util.Log.e("AlarmReceiver", "check failed", e)
@@ -200,6 +212,8 @@ class AlarmReceiver : BroadcastReceiver() {
                     sb.append('[').append(ts).append(']').append(" alarm error:\n")
                     sb.append(sw.toString()).append('\n')
                     dbg.appendText(sb.toString())
+            // report exception to Sentry
+            try { ReportHelper.reportException(e) } catch (_: Exception) {}
                 } catch (_: Exception) { /* ignore secondary failures */ }
             }
         }.start()

@@ -51,6 +51,9 @@ class MainActivity : AppCompatActivity() {
     val tvLast = findViewById<TextView>(R.id.tvLastRun)
     val tvStatus = findViewById<TextView>(R.id.tvStatusCard)
     val tvScheduled = findViewById<TextView>(R.id.tvScheduledTime)
+    val btnSendDebug = findViewById<Button>(R.id.btnSendDebug)
+    val switchTelemetry = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchTelemetry)
+    val btnViewDebug = findViewById<Button>(R.id.btnViewDebug)
     val prefs = getSharedPreferences("dtc", Context.MODE_PRIVATE)
     val schedHour = prefs.getInt("schedule_hour", 3)
     val schedMin = prefs.getInt("schedule_minute", 10)
@@ -131,6 +134,37 @@ class MainActivity : AppCompatActivity() {
 
         btnViewHtml.setOnClickListener {
             startActivity(Intent(this, ViewHtmlActivity::class.java))
+        }
+
+        // initialize telemetry switch from prefs
+        val telPref = getSharedPreferences("dtc", Context.MODE_PRIVATE)
+        val enabled = telPref.getBoolean("telemetry_enabled", false)
+        switchTelemetry.isChecked = enabled
+
+        switchTelemetry.setOnCheckedChangeListener { _, isChecked ->
+            telPref.edit().putBoolean("telemetry_enabled", isChecked).apply()
+        }
+
+        btnSendDebug.setOnClickListener {
+            // create tiny sample snippets and send via ReportHelper for testing
+            Thread {
+                try {
+                    val csvSnippet = "timestamp,profile,message\nTEST,TEST,Manual debug report"
+                    val htmlSnippet = "<html><body><h1>Debug Snapshot</h1><p>Test report</p></body></html>"
+                    val sendAllowed = telPref.getBoolean("telemetry_enabled", false)
+                    val ok = if (sendAllowed) ReportHelper.reportParseFailure(this@MainActivity, "Manual test report from device", csvSnippet, htmlSnippet) else false
+                    runOnUiThread {
+                        if (ok) Toast.makeText(this@MainActivity, "Debug report sent (check Sentry)", Toast.LENGTH_LONG).show()
+                        else Toast.makeText(this@MainActivity, "Failed to send debug report", Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread { Toast.makeText(this@MainActivity, "Failed to send debug report: ${e.message}", Toast.LENGTH_LONG).show() }
+                }
+            }.start()
+        }
+
+        btnViewDebug.setOnClickListener {
+            startActivity(Intent(this, DebugLogActivity::class.java))
         }
 
         // ensure there is an active profile; if not, force add
