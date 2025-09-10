@@ -53,7 +53,6 @@ class MainActivity : AppCompatActivity() {
     val tvScheduled = findViewById<TextView>(R.id.tvScheduledTime)
     val btnSendDebug = findViewById<Button>(R.id.btnSendDebug)
     val switchTelemetry = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchTelemetry)
-    val btnViewDebug = findViewById<Button>(R.id.btnViewDebug)
     val prefs = getSharedPreferences("dtc", Context.MODE_PRIVATE)
     val schedHour = prefs.getInt("schedule_hour", 3)
     val schedMin = prefs.getInt("schedule_minute", 10)
@@ -163,9 +162,7 @@ class MainActivity : AppCompatActivity() {
             }.start()
         }
 
-        btnViewDebug.setOnClickListener {
-            startActivity(Intent(this, DebugLogActivity::class.java))
-        }
+    // Debug log view removed from UI
 
         // ensure there is an active profile; if not, force add
         val prefs2 = getSharedPreferences("dtc", Context.MODE_PRIVATE)

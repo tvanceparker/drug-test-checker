@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Blue circle -->
+    <path
+        android:fillColor="#0B61FF"
+        android:pathData="M54,6a48,48 0 1,0 0,96a48,48 0 1,0 0,-96z" />
+
+    <!-- Text: DTC simple glyphs as paths (stylized) -->
+    <!-- We keep it simple: a white D letter shape cutout -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,36h12c6,0 10,4 10,10 0,6 -4,10 -10,10H34zM34,36v36h14c10,0 18,-8 18,-18 0,-10 -8,-18 -18,-18H34z"
+        android:fillType="nonZero" />
+
+</vector>

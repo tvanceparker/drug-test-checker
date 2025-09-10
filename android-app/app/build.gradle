@@ -22,6 +22,20 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = '17' }
+
+    signingConfigs {
+        // use the debug signing key for quick local release installs
+        debug {}
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+            // keep release build simple for local testing
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
 }
 
 dependencies {

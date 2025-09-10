@@ -13,6 +13,8 @@
         android:name=".SentryInit"
         android:allowBackup="true"
         android:label="Drug Test Checker"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
